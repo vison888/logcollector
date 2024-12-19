@@ -19,7 +19,7 @@ func init() {
 }
 
 func log(log *pb.Log) error {
-	fileName := log.MeetingId + ".log"
+	fileName := time.Now().Format("20060102") + "-" + log.MeetingId + ".log"
 	filePath := app.Cfg.Log.Dir + fileName
 	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
