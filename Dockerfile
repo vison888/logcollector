@@ -3,6 +3,7 @@ RUN sed -i 's/https/http/' /etc/apk/repositories
 RUN apk add curl
 WORKDIR /app
 COPY  logcollector /app/logcollector
+COPY  config.toml /app/config.toml
 
 RUN mkdir -p temp
 RUN apk update \
