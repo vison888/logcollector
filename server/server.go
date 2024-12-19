@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/vison888/go-vkit/errorsx/neterrors"
 	"github.com/vison888/go-vkit/gate"
 	"github.com/vison888/go-vkit/logger"
 	"github.com/vison888/logcollector/app"
@@ -13,6 +14,13 @@ import (
 )
 
 func tokenCheckFunc(w http.ResponseWriter, r *http.Request) error {
+	tokenStr := r.Header.Get("Authorization")
+	if tokenStr == "" {
+		return neterrors.Unauthorized("没有请求令牌，请求失败!")
+	}
+	if tokenStr != "ad8045ec-37a3-075b-1f83-53a6ebcae9c1" {
+		return neterrors.Unauthorized("令牌错误，请求失败!")
+	}
 	return nil
 }
 
