@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package log_collector;
+
+option go_package = "./;log_collector";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+//----------------------日志管理---------------------
+service LogService{
+  //上报一个日志
+  rpc One(CollectOneReq) returns (CollectOneResp) {
+    option (google.api.http) = {
+      post: "/api/collector/log.add"
+      body: "*"
+    };
+  }
+
+  //批量上报
+  rpc Batch(CollectBatchReq) returns (CollectBatchResp) {
+    option (google.api.http) = {
+      post: "/api/collector/log.addBatch"
+      body: "*"
+    };
+  }
+}
+
+// 单个日志收集
+message CollectOneReq {
+  // 模块 meeting
+  string module = 1 [(validate.rules).string.min_len = 1]; 
+  // 会议id
+  string meeting_id = 2[(validate.rules).string.min_len = 1]; 
+  // 用户id
+  string user_id = 3[(validate.rules).string.min_len = 1]; 
+  // 毫秒时间戳
+  int64 timestamp = 4; 
+  // 日志信息
+  string info = 5;
+}
+
+message CollectOneResp {
+  int32 code = 1;
+  string msg = 2;
+}
+
+message CollectBatchReq {
+  repeated Log logs = 1;
+}
+
+message CollectBatchResp {
+  int32 code = 1;
+  string msg = 2;
+}
+
+// 日志
+message Log {
+  // 模块 meeting
+  string module = 1 [(validate.rules).string.min_len = 1]; 
+  // 会议id
+  string meeting_id = 2[(validate.rules).string.min_len = 1]; 
+  // 用户id
+  string user_id = 3[(validate.rules).string.min_len = 1]; 
+  // 毫秒时间戳
+  int64 timestamp = 4; 
+  // 日志信息
+  string info = 5;
+}
