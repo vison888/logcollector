@@ -2,8 +2,11 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/vison888/go-vkit/errorsx/neterrors"
@@ -51,6 +54,32 @@ func Start() {
 		logger.Errorf("[main] RegisterApiEndpoint fail %s", err)
 		panic(err)
 	}
+
+	http.HandleFunc("/api/collector/log.crash", func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if e := r.Body.Close(); e != nil {
+				return
+			}
+		}()
+		bytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Errorf("[main] err %s", err.Error())
+			return
+		}
+
+		netErr := &neterrors.NetError{
+			Msg:  "OK",
+			Code: 0,
+		}
+		content, _ := json.Marshal(netErr)
+
+		logger.Infof("read android crash msg bytes:%s", string(bytes))
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(200)
+		w.Header().Set("Content-Length", strconv.Itoa(len(content)))
+		w.Write(content)
+	})
+
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		h.Handle(w, r)
 	})
