@@ -1,12 +1,14 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/vison888/go-vkit/errorsx/neterrors"
@@ -44,6 +46,57 @@ func logFunc(f gate.HandlerFunc) gate.HandlerFunc {
 	}
 }
 
+func alert(content string) {
+	content = strings.ReplaceAll(content, "\\tat", "&nbsp;&nbsp;&nbsp;&nbsp;")
+	content = strings.ReplaceAll(content, "\\n", "<br/>")
+
+	// Create the alert payload
+	alertData := map[string]interface{}{
+		"title":   "Android出现宕机",
+		"content": content,
+		"time":    time.Now().Format(time.RFC3339),
+	}
+
+	logger.Infof("content=:%s", content)
+	jsonData, err := json.Marshal(alertData)
+	if err != nil {
+		logger.Errorf("Failed to marshal alert data: %v", err)
+		return
+	}
+
+	// Create the HTTP request
+	req, err := http.NewRequest("POST", app.Cfg.Alert.AlertUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		logger.Errorf("Failed to create request: %v", err)
+		return
+	}
+
+	// Set headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create HTTP client with timeout
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Errorf("Failed to send alert: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		logger.Errorf("Alert failed with status %d: %s", resp.StatusCode, string(body))
+		return
+	}
+
+	logger.Infof("Alert sent successfully")
+}
+
 func Start() {
 	h := gate.NewNativeHandler(
 		gate.HttpAuthHandler(tokenCheckFunc),
@@ -66,6 +119,8 @@ func Start() {
 			logger.Errorf("[main] err %s", err.Error())
 			return
 		}
+
+		go alert(string(bytes))
 
 		netErr := &neterrors.NetError{
 			Msg:  "OK",

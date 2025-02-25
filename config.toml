@@ -1,11 +1,13 @@
 IsDebug = true
 
-# 服务启动的
 [Server]
 Address = "0.0.0.0"
 HttpPort = 8080
 
 [Log]
 Dir = "./logMeeting/"
+
+[Alert]
+AlertUrl = "http://127.0.0.1:8080/alert/baseAlert"
 
 

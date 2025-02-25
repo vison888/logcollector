@@ -17,6 +17,7 @@ type Config struct {
 	IsDebug bool
 	Server  Server
 	Log     Log
+	Alert   Alert
 }
 
 type Log struct {
@@ -26,4 +27,8 @@ type Log struct {
 type Server struct {
 	Address  string
 	HttpPort int32
+}
+
+type Alert struct {
+	AlertUrl string
 }
